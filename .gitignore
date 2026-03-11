@@ -1,0 +1,7 @@
+/node_modules
+/.next
+/out
+/.vscode
+
+/next-inspect/node_modules
+/next-inspect/.vscode
