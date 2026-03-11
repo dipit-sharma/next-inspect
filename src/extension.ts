@@ -51,16 +51,16 @@ function getWebviewContent(): string {
 			<title>Next.js Network Inspector</title>
 			<style>
 				:root {
-					--bg: #f8f9fb;
-					--surface: #ffffff;
-					--surface-alt: #f2f4f8;
-					--text: #102a43;
-					--muted: #627d98;
-					--accent: #0f766e;
-					--accent-soft: #ccfbf1;
-					--danger: #b91c1c;
-					--border: #d9e2ec;
-					--shadow: 0 14px 32px rgba(16, 42, 67, 0.08);
+					--bg: #0b1020;
+					--surface: #11172a;
+					--surface-alt: #1a2238;
+					--text: #e7edf9;
+					--muted: #a5b2cc;
+					--accent: #14b8a6;
+					--accent-soft: #11383a;
+					--danger: #ef4444;
+					--border: #2a3653;
+					--shadow: 0 20px 36px rgba(0, 0, 0, 0.35);
 				}
 
 				* { box-sizing: border-box; }
@@ -69,8 +69,8 @@ function getWebviewContent(): string {
 					margin: 0;
 					font-family: "Space Grotesk", "Segoe UI", sans-serif;
 					background:
-						radial-gradient(circle at 5% 10%, #d1fae5 0%, transparent 40%),
-						radial-gradient(circle at 90% 5%, #dbeafe 0%, transparent 45%),
+						radial-gradient(circle at 5% 10%, #133a5c 0%, transparent 45%),
+						radial-gradient(circle at 90% 5%, #1d2d5b 0%, transparent 45%),
 						var(--bg);
 					color: var(--text);
 					padding: 18px;
@@ -175,7 +175,7 @@ function getWebviewContent(): string {
 					border: 1px solid var(--border);
 					border-radius: 14px;
 					padding: 12px;
-					background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+					background: linear-gradient(180deg, #141d34 0%, #11172a 100%);
 					animation: slideIn 180ms ease;
 				}
 
@@ -203,8 +203,8 @@ function getWebviewContent(): string {
 				}
 
 				.badge.error {
-					background: #fee2e2;
-					color: var(--danger);
+					background: #3b1b20;
+					color: #fda4af;
 				}
 
 				.url {
@@ -227,9 +227,10 @@ function getWebviewContent(): string {
 				pre {
 					margin: 0;
 					padding: 10px;
-					background: #0b1f33;
-					color: #e4f0ff;
+					background: #0a1225;
+					color: #d7e3fb;
 					border-radius: 10px;
+					border: 1px solid #243453;
 					white-space: pre-wrap;
 					word-break: break-word;
 					font-size: 0.78rem;
