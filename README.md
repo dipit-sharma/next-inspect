@@ -1,71 +1,96 @@
-# next-inspect README
+# next-inspect
 
-This is the README for your extension "next-inspect". After writing up a brief description, we recommend including the following sections.
+next-inspect is a VS Code extension that helps you inspect server-side Next.js network traffic in real time.
 
-## Features
+It includes:
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+1. An HTTP ingest server on port 8764.
+2. A WebSocket stream on port 8765.
+3. A webview panel that filters, searches, and exports captured logs.
+4. A command that copies a Next.js instrumentation snippet.
 
-For example if there is an image subfolder under your extension project workspace:
+## Quick Start
 
-\!\[feature X\]\(images/feature-x.png\)
+1. Install dependencies:
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+```bash
+npm install
+```
 
-## Requirements
+2. Build the extension:
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+```bash
+npm run compile
+```
 
-## Extension Settings
+3. Start the extension in VS Code Extension Development Host.
+4. Run the command: Next Inspect: Open Next.js Network Inspector.
+5. Run the command: Next Inspect: Copy Next.js Instrumentation Snippet.
+6. Paste the snippet into instrumentation.ts in your Next.js app.
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+## How Capture Works
 
-For example:
+The extension does not automatically sniff all Node traffic. It captures outgoing Next.js server requests by patching server-side fetch in your Next.js process.
 
-This extension contributes the following settings:
+Flow:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+1. Next.js server-side fetch is wrapped by instrumentation.
+2. Each fetch event is POSTed to http://localhost:8764/\_\_next-inspect/ingest.
+3. Extension server stores and broadcasts the event via ws://localhost:8765.
+4. The panel renders new logs live.
 
-## Known Issues
+## Next.js Setup
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+1. Create instrumentation.ts at your Next.js app root.
+2. Paste the snippet copied by the command.
+3. Ensure your Next.js app is running in Node runtime for server instrumentation.
+4. Trigger server-side fetch calls and open the inspector panel.
 
-## Release Notes
+## Commands
 
-Users appreciate release notes as you update your extension.
+1. next-inspect.openPanel: Open Next.js Network Inspector.
+2. next-inspect.copyInstrumentationSnippet: Copy Next.js instrumentation snippet.
 
-### 1.0.0
+## Data Captured
 
-Initial release of ...
+Each log entry can include:
 
-### 1.0.1
+1. method
+2. url
+3. headers
+4. body
+5. timestamp
+6. statusCode
+7. durationMs
+8. source (proxy or next-fetch)
 
-Fixed issue #.
+## Troubleshooting
 
-### 1.1.0
+### No logs in panel
 
-Added features X, Y, and Z.
+1. Verify the extension is running and panel is open.
+2. Verify instrumentation.ts is loaded by Next.js.
+3. Verify your app can POST to http://localhost:8764/\_\_next-inspect/ingest.
+4. Verify requests are server-side fetch calls, not browser-only requests.
 
----
+### Cannot resolve utf-8-validate during build
 
-## Following extension guidelines
+This project keeps ws external in webpack config so optional ws native dependencies are not bundled.
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+### Port conflicts
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+If ports 8764 or 8765 are used by another process, free those ports or update the server/webview code to use different ports.
 
-## Working with Markdown
+## Development Scripts
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+1. npm run compile: Build extension bundle.
+2. npm run watch: Rebuild on file changes.
+3. npm run compile-tests: Compile tests.
+4. npm run watch-tests: Watch test compilation.
+5. npm run lint: Run ESLint.
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+## Known Limitations
 
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+1. Logs are in-memory and are cleared when the extension host restarts.
+2. Only traffic sent to the ingest endpoint or interceptor HTTP server is captured.
+3. Browser-side requests are not captured unless explicitly forwarded.

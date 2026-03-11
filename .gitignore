@@ -5,3 +5,5 @@
 
 /next-inspect/node_modules
 /next-inspect/.vscode
+
+/dist
