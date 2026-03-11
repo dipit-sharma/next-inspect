@@ -25,6 +25,11 @@ export function activate(context: vscode.ExtensionContext) {
 				copyInstrumentationSnippet().catch(error => {
 					void vscode.window.showErrorMessage(`Failed to copy snippet: ${String(error)}`);
 				});
+				return;
+			}
+
+			if (message?.type === 'copyCurl' && message?.log) {
+				void copyCurlCommand(message.log as InspectorLog);
 			}
 		});
 	});
@@ -45,41 +50,245 @@ function getWebviewContent(): string {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
 			<title>Next.js Network Inspector</title>
 			<style>
-				body { font-family: Segoe UI, sans-serif; }
-				#controls { margin-top: 1em; }
-				#setup { margin-top: 1em; }
-				#setup button { margin-left: 0.5em; }
-				#network-log { margin-top: 1em; }
-				.log-entry { border-bottom: 1px solid #eee; padding: 0.5em 0; }
-				.log-entry:last-child { border-bottom: none; }
-				.url { font-weight: bold; }
-				.method { color: #007acc; }
-				.timestamp { color: #888; font-size: 0.9em; }
-				.meta { color: #555; font-size: 0.9em; }
-				.hidden { display: none; }
-				.search-box { width: 200px; }
-				pre { white-space: pre-wrap; word-break: break-word; }
+				:root {
+					--bg: #f8f9fb;
+					--surface: #ffffff;
+					--surface-alt: #f2f4f8;
+					--text: #102a43;
+					--muted: #627d98;
+					--accent: #0f766e;
+					--accent-soft: #ccfbf1;
+					--danger: #b91c1c;
+					--border: #d9e2ec;
+					--shadow: 0 14px 32px rgba(16, 42, 67, 0.08);
+				}
+
+				* { box-sizing: border-box; }
+
+				body {
+					margin: 0;
+					font-family: "Space Grotesk", "Segoe UI", sans-serif;
+					background:
+						radial-gradient(circle at 5% 10%, #d1fae5 0%, transparent 40%),
+						radial-gradient(circle at 90% 5%, #dbeafe 0%, transparent 45%),
+						var(--bg);
+					color: var(--text);
+					padding: 18px;
+				}
+
+				.page {
+					max-width: 1200px;
+					margin: 0 auto;
+					display: grid;
+					gap: 14px;
+				}
+
+				.panel {
+					background: var(--surface);
+					border: 1px solid var(--border);
+					border-radius: 16px;
+					padding: 14px;
+					box-shadow: var(--shadow);
+				}
+
+				h1 {
+					margin: 0;
+					font-size: 1.5rem;
+					letter-spacing: 0.03em;
+				}
+
+				.subtitle {
+					margin-top: 4px;
+					color: var(--muted);
+					font-size: 0.95rem;
+				}
+
+				button, select, input {
+					font-family: inherit;
+				}
+
+				.toolbar {
+					display: flex;
+					flex-wrap: wrap;
+					gap: 8px;
+					align-items: center;
+				}
+
+				.toolbar input, .toolbar select {
+					background: var(--surface-alt);
+					border: 1px solid var(--border);
+					border-radius: 10px;
+					padding: 9px 10px;
+					color: var(--text);
+				}
+
+				.toolbar input {
+					min-width: 240px;
+					flex: 1;
+				}
+
+				.button {
+					border: 1px solid transparent;
+					border-radius: 10px;
+					padding: 9px 12px;
+					cursor: pointer;
+					transition: transform 120ms ease, box-shadow 120ms ease;
+				}
+
+				.button:hover {
+					transform: translateY(-1px);
+					box-shadow: 0 8px 18px rgba(16, 42, 67, 0.1);
+				}
+
+				.button.primary {
+					background: var(--accent);
+					color: #ffffff;
+				}
+
+				.button.ghost {
+					background: var(--surface-alt);
+					border-color: var(--border);
+					color: var(--text);
+				}
+
+				.kpis {
+					display: flex;
+					gap: 8px;
+					flex-wrap: wrap;
+				}
+
+				.kpi {
+					padding: 8px 10px;
+					border-radius: 999px;
+					background: var(--surface-alt);
+					border: 1px solid var(--border);
+					font-size: 0.82rem;
+					color: var(--muted);
+				}
+
+				#network-log {
+					display: grid;
+					gap: 10px;
+				}
+
+				.log-entry {
+					border: 1px solid var(--border);
+					border-radius: 14px;
+					padding: 12px;
+					background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+					animation: slideIn 180ms ease;
+				}
+
+				.entry-head {
+					display: flex;
+					justify-content: space-between;
+					gap: 12px;
+					align-items: flex-start;
+				}
+
+				.entry-main {
+					display: flex;
+					gap: 8px;
+					align-items: center;
+					flex-wrap: wrap;
+				}
+
+				.badge {
+					font-size: 0.74rem;
+					font-weight: 700;
+					padding: 4px 8px;
+					border-radius: 999px;
+					background: var(--accent-soft);
+					color: var(--accent);
+				}
+
+				.badge.error {
+					background: #fee2e2;
+					color: var(--danger);
+				}
+
+				.url {
+					font-weight: 600;
+					word-break: break-all;
+				}
+
+				.meta {
+					margin-top: 6px;
+					font-size: 0.82rem;
+					color: var(--muted);
+				}
+
+				.details {
+					display: grid;
+					gap: 6px;
+					margin-top: 10px;
+				}
+
+				pre {
+					margin: 0;
+					padding: 10px;
+					background: #0b1f33;
+					color: #e4f0ff;
+					border-radius: 10px;
+					white-space: pre-wrap;
+					word-break: break-word;
+					font-size: 0.78rem;
+				}
+
+				.empty {
+					text-align: center;
+					padding: 34px 12px;
+					color: var(--muted);
+					border: 1px dashed var(--border);
+					border-radius: 12px;
+				}
+
+				@keyframes slideIn {
+					from { opacity: 0; transform: translateY(4px); }
+					to { opacity: 1; transform: translateY(0); }
+				}
+
+				@media (max-width: 720px) {
+					body { padding: 12px; }
+					.toolbar input { min-width: 100%; }
+					.entry-head { flex-direction: column; }
+				}
 			</style>
 		</head>
 		<body>
-			<h1>Next.js Network Inspector</h1>
-			<div id="setup">
-				<div>For reliable Next.js server request capture, install instrumentation in your app.</div>
-				<button id="copySnippet">Copy Next.js Instrumentation Snippet</button>
+			<div class="page">
+				<section class="panel">
+					<h1>Next.js Network Inspector</h1>
+					<div class="subtitle">Live server request capture for Next.js with export and replay.</div>
+					<div class="toolbar" style="margin-top:10px;">
+						<button class="button primary" id="copySnippet">Copy Instrumentation Snippet</button>
+					</div>
+				</section>
+
+				<section class="panel">
+					<div class="toolbar">
+						<input type="text" id="search" placeholder="Search by URL or method" />
+						<select id="methodFilter">
+							<option value="">All Methods</option>
+							<option value="GET">GET</option>
+							<option value="POST">POST</option>
+							<option value="PUT">PUT</option>
+							<option value="PATCH">PATCH</option>
+							<option value="DELETE">DELETE</option>
+						</select>
+						<button class="button ghost" id="clear">Clear</button>
+						<button class="button ghost" id="export">Export JSON</button>
+					</div>
+					<div class="kpis" style="margin-top:10px;">
+						<span class="kpi" id="kpiTotal">Total: 0</span>
+						<span class="kpi" id="kpiVisible">Visible: 0</span>
+					</div>
+				</section>
+
+				<section class="panel">
+					<div id="network-log"><div class="empty">No captured requests yet.</div></div>
+				</section>
 			</div>
-			<div id="controls">
-				<input type="text" id="search" class="search-box" placeholder="Search URL or method..." />
-				<select id="methodFilter">
-					<option value="">All Methods</option>
-					<option value="GET">GET</option>
-					<option value="POST">POST</option>
-					<option value="PUT">PUT</option>
-					<option value="DELETE">DELETE</option>
-				</select>
-				<button id="clear">Clear</button>
-				<button id="export">Export</button>
-			</div>
-			<div id="network-log">No data yet.</div>
 			<script>
 				const logDiv = document.getElementById('network-log');
 				const searchInput = document.getElementById('search');
@@ -87,6 +296,8 @@ function getWebviewContent(): string {
 				const clearBtn = document.getElementById('clear');
 				const exportBtn = document.getElementById('export');
 				const copySnippetBtn = document.getElementById('copySnippet');
+				const kpiTotal = document.getElementById('kpiTotal');
+				const kpiVisible = document.getElementById('kpiVisible');
 				const vscodeApi = acquireVsCodeApi();
 				let ws;
 				let logs = [];
@@ -110,20 +321,45 @@ function getWebviewContent(): string {
 						const matchesMethod = !method || log.method === method;
 						return matchesSearch && matchesMethod;
 					});
-					logDiv.innerHTML = filtered.length === 0 ? 'No data yet.' : '';
-					filtered.slice().reverse().forEach(log => {
+
+					kpiTotal.textContent = 'Total: ' + logs.length;
+					kpiVisible.textContent = 'Visible: ' + filtered.length;
+
+					logDiv.innerHTML = '';
+					if (filtered.length === 0) {
+						logDiv.innerHTML = '<div class="empty">No matching requests.</div>';
+						return;
+					}
+
+					filtered.slice().reverse().forEach((log, idx) => {
 						const entry = document.createElement('div');
 						entry.className = 'log-entry';
+						entry.dataset.index = String(idx);
+						entry.dataset.log = JSON.stringify(log);
 						const statusText = typeof log.statusCode === 'number' ? 'Status: ' + log.statusCode : '';
 						const durationText = typeof log.durationMs === 'number' ? 'Duration: ' + log.durationMs + 'ms' : '';
 						const sourceText = log.source ? 'Source: ' + log.source : '';
+						const methodBadgeClass = (log.statusCode && log.statusCode >= 400) ? 'badge error' : 'badge';
+						const bodyText = typeof log.body === 'string' ? log.body : '';
 						entry.innerHTML =
-							'<span class="timestamp">' + escapeHtml(new Date(log.timestamp).toLocaleTimeString()) + '</span> ' +
-							'<span class="method">' + escapeHtml(log.method) + '</span> ' +
-							'<span class="url">' + escapeHtml(log.url) + '</span><br>' +
-							'<span class="meta">' + escapeHtml([statusText, durationText, sourceText].filter(Boolean).join(' | ')) + '</span><br>' +
-							'<span>Headers: <pre>' + escapeHtml(JSON.stringify(log.headers, null, 2)) + '</pre></span>' +
-							'<span>Body: <pre>' + escapeHtml(log.body || '') + '</pre></span>';
+							'<div class="entry-head">' +
+								'<div>' +
+									'<div class="entry-main">' +
+										'<span class="' + methodBadgeClass + '">' + escapeHtml(log.method) + '</span>' +
+										'<span class="url">' + escapeHtml(log.url) + '</span>' +
+									'</div>' +
+									'<div class="meta">' + escapeHtml(new Date(log.timestamp).toLocaleString()) + ' | ' + escapeHtml([statusText, durationText, sourceText].filter(Boolean).join(' | ')) + '</div>' +
+								'</div>' +
+								'<div>' +
+									'<button class="button ghost copy-curl-btn">copy cURL</button>' +
+								'</div>' +
+							'</div>' +
+							'<div class="details">' +
+								'<div>Headers</div>' +
+								'<pre>' + escapeHtml(JSON.stringify(log.headers, null, 2)) + '</pre>' +
+								'<div>Body</div>' +
+								'<pre>' + escapeHtml(bodyText) + '</pre>' +
+							'</div>';
 						logDiv.appendChild(entry);
 					});
 				}
@@ -163,10 +399,84 @@ function getWebviewContent(): string {
 				copySnippetBtn.addEventListener('click', () => {
 					vscodeApi.postMessage({ type: 'copyInstrumentationSnippet' });
 				});
+
+				logDiv.addEventListener('click', event => {
+					const target = event.target;
+					if (!(target instanceof HTMLElement)) {
+						return;
+					}
+
+					if (!target.classList.contains('copy-curl-btn')) {
+						return;
+					}
+
+					const entry = target.closest('.log-entry');
+					if (!entry || !entry.dataset.log) {
+						return;
+					}
+
+					try {
+						const log = JSON.parse(entry.dataset.log);
+						vscodeApi.postMessage({ type: 'copyCurl', log });
+					} catch {
+						// Ignore malformed log payload in UI state.
+					}
+				});
 			</script>
 		</body>
 		</html>
 	`;
+}
+
+interface InspectorLog {
+	method?: unknown;
+	url?: unknown;
+	headers?: unknown;
+	body?: unknown;
+}
+
+function escapeForSingleQuoteShell(value: string): string {
+	return value.replace(/'/g, `'"'"'`);
+}
+
+function normalizeHeaders(headers: unknown): Record<string, string | string[]> {
+	if (!headers || typeof headers !== 'object') {
+		return {};
+	}
+
+	return headers as Record<string, string | string[]>;
+}
+
+function buildCurlCommand(log: InspectorLog): string {
+	const method = (typeof log.method === 'string' && log.method.trim()) ? log.method.toUpperCase() : 'GET';
+	const rawUrl = (typeof log.url === 'string' && log.url.trim()) ? log.url : '/';
+	const url = /^https?:\/\//i.test(rawUrl) ? rawUrl : `http://localhost${rawUrl.startsWith('/') ? '' : '/'}${rawUrl}`;
+	const headers = normalizeHeaders(log.headers);
+	const body = typeof log.body === 'string' ? log.body : '';
+
+	const segments: string[] = [`curl --location --request ${method} '${escapeForSingleQuoteShell(url)}'`];
+
+	for (const [key, value] of Object.entries(headers)) {
+		if (typeof value === 'string') {
+			segments.push(`--header '${escapeForSingleQuoteShell(`${key}: ${value}`)}'`);
+		} else if (Array.isArray(value)) {
+			for (const item of value) {
+				segments.push(`--header '${escapeForSingleQuoteShell(`${key}: ${String(item)}`)}'`);
+			}
+		}
+	}
+
+	if (body) {
+		segments.push(`--data-raw '${escapeForSingleQuoteShell(body)}'`);
+	}
+
+	return segments.join(' \\\n  ');
+}
+
+async function copyCurlCommand(log: InspectorLog): Promise<void> {
+	const curl = buildCurlCommand(log);
+	await vscode.env.clipboard.writeText(curl);
+	void vscode.window.showInformationMessage('Request cURL copied to clipboard. Paste it into Postman Import > Raw text.');
 }
 
 function getInstrumentationSnippet(): string {
