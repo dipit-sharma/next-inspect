@@ -7,3 +7,4 @@
 /next-inspect/.vscode
 
 /dist
+/.env
