@@ -51,16 +51,54 @@ function getWebviewContent(): string {
 			<title>Next.js Network Inspector</title>
 			<style>
 				:root {
-					--bg: #0b1020;
-					--surface: #11172a;
-					--surface-alt: #1a2238;
-					--text: #e7edf9;
-					--muted: #a5b2cc;
-					--accent: #14b8a6;
-					--accent-soft: #11383a;
+					--bg: #0f172a;
+					--surface: #111827;
+					--surface-alt: #1f2937;
+					--text: #e5e7eb;
+					--muted: #94a3b8;
+					--accent: #22c55e;
+					--accent-soft: #163021;
 					--danger: #ef4444;
-					--border: #2a3653;
-					--shadow: 0 20px 36px rgba(0, 0, 0, 0.35);
+					--border: #334155;
+					--code-bg: #0b1220;
+					--code-border: #374151;
+					--code-text: #dbeafe;
+					--error-soft: #3b1d22;
+					--error-text: #fecaca;
+				}
+
+				body.vscode-light {
+					--bg: #f5f7fb;
+					--surface: #ffffff;
+					--surface-alt: #f1f5f9;
+					--text: #0f172a;
+					--muted: #475569;
+					--accent: #15803d;
+					--accent-soft: #dcfce7;
+					--danger: #dc2626;
+					--border: #cbd5e1;
+					--code-bg: #f8fafc;
+					--code-border: #cbd5e1;
+					--code-text: #0f172a;
+					--error-soft: #fee2e2;
+					--error-text: #991b1b;
+				}
+
+				body.vscode-high-contrast {
+					--bg: #000000;
+					--surface: #000000;
+					--surface-alt: #111111;
+					--text: #ffffff;
+					--muted: #dddddd;
+					--accent: #00ff7f;
+					--accent-soft: #003322;
+					--danger: #ff6b6b;
+					--border: #ffffff;
+					--code-bg: #000000;
+					--code-border: #ffffff;
+					--code-text: #ffffff;
+					--error-soft: #330000;
+					--error-text: #ffb4b4;
 				}
 
 				* { box-sizing: border-box; }
@@ -68,10 +106,7 @@ function getWebviewContent(): string {
 				body {
 					margin: 0;
 					font-family: "Space Grotesk", "Segoe UI", sans-serif;
-					background:
-						radial-gradient(circle at 5% 10%, #133a5c 0%, transparent 45%),
-						radial-gradient(circle at 90% 5%, #1d2d5b 0%, transparent 45%),
-						var(--bg);
+					background: var(--bg);
 					color: var(--text);
 					padding: 18px;
 				}
@@ -88,7 +123,7 @@ function getWebviewContent(): string {
 					border: 1px solid var(--border);
 					border-radius: 16px;
 					padding: 14px;
-					box-shadow: var(--shadow);
+					box-shadow: none;
 				}
 
 				h1 {
@@ -136,8 +171,8 @@ function getWebviewContent(): string {
 				}
 
 				.button:hover {
-					transform: translateY(-1px);
-					box-shadow: 0 8px 18px rgba(16, 42, 67, 0.1);
+					transform: none;
+					border-color: var(--accent);
 				}
 
 				.button.primary {
@@ -175,7 +210,7 @@ function getWebviewContent(): string {
 					border: 1px solid var(--border);
 					border-radius: 14px;
 					padding: 12px;
-					background: linear-gradient(180deg, #141d34 0%, #11172a 100%);
+					background: var(--surface);
 					animation: slideIn 180ms ease;
 				}
 
@@ -203,8 +238,8 @@ function getWebviewContent(): string {
 				}
 
 				.badge.error {
-					background: #3b1b20;
-					color: #fda4af;
+					background: var(--error-soft);
+					color: var(--error-text);
 				}
 
 				.url {
@@ -227,10 +262,10 @@ function getWebviewContent(): string {
 				pre {
 					margin: 0;
 					padding: 10px;
-					background: #0a1225;
-					color: #d7e3fb;
+					background: var(--code-bg);
+					color: var(--code-text);
 					border-radius: 10px;
-					border: 1px solid #243453;
+					border: 1px solid var(--code-border);
 					white-space: pre-wrap;
 					word-break: break-word;
 					font-size: 0.78rem;
