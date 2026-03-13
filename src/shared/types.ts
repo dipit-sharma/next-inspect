@@ -23,3 +23,23 @@ export interface InterceptorHandles {
     requestId: number;
     responseId: number;
 }
+
+export interface NetworkRequestConfigPayload {
+    id: string;
+    timestamp: number;
+    method: string;
+    url: string;
+    baseURL?: string;
+    headers?: Record<string, string | number | boolean>;
+    params?: unknown;
+    data?: unknown;
+}
+
+export interface NetworkRequestConfigMessage {
+    type: "network.request.config";
+    payload: NetworkRequestConfigPayload;
+}
+
+export type WebSocketHubMessage = NetworkRequestConfigMessage;
+
+export type WebSocketClientRole = "producer" | "frontend";
