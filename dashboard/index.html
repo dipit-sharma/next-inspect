@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>next-inspect dashboard</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <h1>next-inspect</h1>
+          <p>Live server-side network logs</p>
+        </div>
+        <div class="connection">
+          <label for="ws-url">WS URL</label>
+          <input id="ws-url" type="text" value="ws://127.0.0.1:8757/ws" />
+          <button id="connect-btn" type="button">Connect</button>
+          <span id="status-pill" class="pill disconnected">disconnected</span>
+        </div>
+      </header>
+
+      <section class="controls">
+        <input
+          id="filter-input"
+          type="text"
+          placeholder="Filter by method or url"
+        />
+        <button id="clear-btn" type="button">Clear logs</button>
+        <span id="counter">0 logs</span>
+      </section>
+
+      <section class="content-grid">
+        <div class="panel list-panel">
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Method</th>
+                <th>URL</th>
+              </tr>
+            </thead>
+            <tbody id="log-rows"></tbody>
+          </table>
+        </div>
+
+        <div class="panel detail-panel">
+          <h2>Log Details</h2>
+          <pre id="details-view">Select a log row to inspect payload.</pre>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
