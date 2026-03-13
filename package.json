@@ -4,6 +4,9 @@
   "description": "TypeScript npm package boilerplate",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "next-inspect": "dist/cli/bin.js"
+  },
   "files": [
     "dist"
   ],
@@ -12,7 +15,7 @@
     "dev": "tsc -w -p tsconfig.build.json",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "intercept": "npm run build && node dist/cli/interceptor.js",
+    "intercept": "npm run build && node dist/cli/bin.js intercept",
     "interceptor": "npm run intercept",
     "prepublishOnly": "npm run build"
   },

@@ -54,7 +54,7 @@ async function handleDashboardRequest(req: IncomingMessage, res: ServerResponse)
     }
 }
 
-async function main(): Promise<void> {
+export async function runInterceptor(): Promise<void> {
     const server = createServer((req, res) => {
         void handleDashboardRequest(req, res);
     });
@@ -100,8 +100,10 @@ async function main(): Promise<void> {
     });
 }
 
-void main().catch((error: unknown) => {
-    const message = error instanceof Error ? error.stack ?? error.message : String(error);
-    process.stderr.write(`Failed to start next-inspect interceptor: ${message}\n`);
-    process.exit(1);
-});
+if (require.main === module) {
+    void runInterceptor().catch((error: unknown) => {
+        const message = error instanceof Error ? error.stack ?? error.message : String(error);
+        process.stderr.write(`Failed to start next-inspect interceptor: ${message}\n`);
+        process.exit(1);
+    });
+}

@@ -11,6 +11,8 @@ export {
     isAxiosError
 } from "./interceptor/axiosInterceptor";
 
+export { registerNextInspect } from "./next/instrumentation";
+
 export { createWebSocketHub } from "./ws-hub/websocket";
 
 export function getHealthCheck(name: string, version: string): HealthCheck {
