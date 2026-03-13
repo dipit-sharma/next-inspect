@@ -78,6 +78,46 @@ Notes:
 - Does not capture Edge runtime traffic.
 - Does not automatically capture `fetch` or browser-side network calls.
 
+### Troubleshooting (Next.js 13.5.9)
+
+1. `instrumentation.ts` is not running
+
+- Check `next.config.js` has `experimental.instrumentationHook = true`.
+- Ensure `instrumentation.ts` is at the app root (same level as `next.config.js`).
+- Restart Next.js dev server after adding instrumentation.
+
+2. Dashboard opens but no logs appear
+
+- Confirm collector is running with `npm run intercept`.
+- Confirm Next app process is running separately (`npm run dev` or `npm run start`).
+- Confirm your server-side code uses Axios (not only `fetch`).
+
+3. Wrong runtime (Edge)
+
+- This package only captures in Node runtime.
+- For routes/pages set to Edge runtime, Axios interception will not run.
+
+4. WebSocket URL mismatch
+
+- Ensure websocket URL is `ws://localhost:8757/ws?role=producer` in `registerNextInspect` or via `NEXT_INSPECT_COLLECTOR_URL`.
+- If host/port/path was customized, match the same values in both collector and Next app.
+
+5. Interceptor disabled by env
+
+- Check `NEXT_INSPECT_ENABLED` is not set to `false`.
+
+6. Multiple Axios versions
+
+- If app and package resolve different Axios copies, interceptor may patch only one instance.
+- Ensure host app imports Axios consistently and avoids duplicate installations if possible.
+
+7. Common quick check sequence
+
+- Start collector: `npm run intercept`.
+- Open dashboard: `http://127.0.0.1:8757`.
+- Start Next app: `npm run dev`.
+- Trigger a server-side Axios request and verify log appears.
+
 ## Getting Started
 
 1. Install dependencies:
