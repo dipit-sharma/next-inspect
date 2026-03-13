@@ -1,60 +1,24 @@
 {
   "name": "next-inspect",
-  "displayName": "Next Inspect: A network inspector for Next.js",
-  "description": "An extension to log the server side network calls on Next JS",
-  "publisher": "DipitSharma",
-  "version": "0.0.4",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/dipit-sharma/next-inspect.git"
-  },
-  "engines": {
-    "vscode": "^1.111.0"
-  },
-  "categories": [
-    "Other"
+  "version": "0.1.0",
+  "description": "TypeScript npm package boilerplate",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
   ],
-  "activationEvents": [],
-  "main": "./dist/extension.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "next-inspect.openPanel",
-        "title": "Open Next.js Network Inspector"
-      },
-      {
-        "command": "next-inspect.copyInstrumentationSnippet",
-        "title": "Copy Next.js Instrumentation Snippet"
-      }
-    ]
-  },
   "scripts": {
-    "vscode:prepublish": "npm run package",
-    "compile": "webpack",
-    "watch": "webpack --watch",
-    "package": "webpack --mode production --devtool hidden-source-map",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
-    "lint": "eslint src",
-    "test": "vscode-test"
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -w -p tsconfig.build.json",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepublishOnly": "npm run build"
   },
-  "dependencies": {
-    "ws": "^8.0.0"
-  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
   "devDependencies": {
-    "@types/mocha": "^10.0.10",
-    "@types/node": "20.x",
-    "@types/vscode": "^1.110.0",
-    "@types/ws": "^8.5.14",
-    "@typescript-eslint/eslint-plugin": "^8.17.0",
-    "@typescript-eslint/parser": "^8.17.0",
-    "eslint": "^9.16.0",
-    "typescript": "^5.7.2",
-    "ts-loader": "^9.5.1",
-    "webpack": "^5.95.0",
-    "webpack-cli": "^5.1.4",
-    "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1"
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2"
   }
 }
