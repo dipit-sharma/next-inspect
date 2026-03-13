@@ -68,10 +68,13 @@ async function main(): Promise<void> {
 
     const hub = createWebSocketHub({ server, path });
     await hub.start();
-    setupGlobalAxiosInterceptor();
+
+    const webSocketHost = host === "0.0.0.0" ? "127.0.0.1" : host;
+    const websocketUrl = `ws://${webSocketHost}:${port}${path}`;
+    setupGlobalAxiosInterceptor({ websocketUrl });
 
     process.stdout.write(`next-inspect dashboard is running at http://${host}:${port}\n`);
-    process.stdout.write(`next-inspect websocket is running at ws://${host}:${port}${path}\n`);
+    process.stdout.write(`next-inspect websocket is running at ws://${webSocketHost}:${port}${path}\n`);
 
     const shutdown = async () => {
         process.stdout.write("Shutting down next-inspect interceptor...\n");

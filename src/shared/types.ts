@@ -17,6 +17,8 @@ export interface GlobalAxiosInterceptorOptions {
     onRequestError?: RequestErrorInterceptor;
     onResponse?: ResponseInterceptor;
     onResponseError?: ResponseErrorInterceptor;
+    websocketUrl?: string;
+    maxBufferedNetworkLogs?: number;
 }
 
 export interface InterceptorHandles {
