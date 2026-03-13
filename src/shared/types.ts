@@ -1,0 +1,25 @@
+import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
+
+export type RequestInterceptor = (
+    config: InternalAxiosRequestConfig
+) => InternalAxiosRequestConfig | Promise<InternalAxiosRequestConfig>;
+
+export type RequestErrorInterceptor = (error: unknown) => unknown;
+
+export type ResponseInterceptor = (
+    response: AxiosResponse
+) => AxiosResponse | Promise<AxiosResponse>;
+
+export type ResponseErrorInterceptor = (error: unknown) => unknown;
+
+export interface GlobalAxiosInterceptorOptions {
+    onRequest?: RequestInterceptor;
+    onRequestError?: RequestErrorInterceptor;
+    onResponse?: ResponseInterceptor;
+    onResponseError?: ResponseErrorInterceptor;
+}
+
+export interface InterceptorHandles {
+    requestId: number;
+    responseId: number;
+}

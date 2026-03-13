@@ -4,6 +4,13 @@ export interface HealthCheck {
     status: "ok";
 }
 
+export {
+    setupGlobalAxiosInterceptor,
+    ejectGlobalAxiosInterceptor,
+    isGlobalAxiosInterceptorInstalled,
+    isAxiosError
+} from "./interceptor/axiosInterceptor";
+
 export function getHealthCheck(name: string, version: string): HealthCheck {
     return {
         name,
