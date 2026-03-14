@@ -16,9 +16,9 @@ export function registerNextInspect(options: NextInspectIntegrationOptions = {})
         return false;
     }
 
-    if (process.env.NEXT_RUNTIME && process.env.NEXT_RUNTIME !== "nodejs") {
-        return false;
-    }
+    // if (process.env.NEXT_RUNTIME && process.env.NEXT_RUNTIME !== "nodejs") {
+    //     return false;
+    // }
 
     const websocketUrl =
         options.websocketUrl ??
@@ -27,7 +27,7 @@ export function registerNextInspect(options: NextInspectIntegrationOptions = {})
 
     setupGlobalAxiosInterceptor({
         websocketUrl,
-        maxBufferedNetworkLogs: options.maxBufferedNetworkLogs
+        maxBufferedNetworkLogs: options.maxBufferedNetworkLogs ?? 200
     });
 
     return true;
