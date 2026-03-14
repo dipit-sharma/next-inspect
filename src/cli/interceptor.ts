@@ -7,7 +7,7 @@ import { createWebSocketHub } from "../ws-hub/websocket";
 const port = Number(process.env.NEXT_INSPECT_PORT ?? "8757");
 const host = process.env.NEXT_INSPECT_HOST ?? "127.0.0.1";
 const path = process.env.NEXT_INSPECT_WS_PATH ?? "/ws";
-const dashboardDir = resolve(process.cwd(), "dashboard");
+const dashboardDir = resolve(__dirname, "../dashboard");
 
 const CONTENT_TYPE: Record<string, string> = {
     ".html": "text/html; charset=utf-8",

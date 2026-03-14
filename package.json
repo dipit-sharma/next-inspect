@@ -8,10 +8,11 @@
     "next-inspect": "dist/cli/bin.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "dist/dashboard"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-dashboard.js",
     "dev": "tsc -w -p tsconfig.build.json",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
