@@ -1,4 +1,5 @@
 import { setupGlobalAxiosInterceptor } from "../interceptor/axiosInterceptor";
+import { setupGlobalFetchInterceptor } from "../interceptor/fetchInterceptor";
 
 const DEFAULT_NEXT_INSPECT_WEBSOCKET_URL = "ws://localhost:8757/ws?role=producer";
 
@@ -26,6 +27,11 @@ export function registerNextInspect(options: NextInspectIntegrationOptions = {})
         DEFAULT_NEXT_INSPECT_WEBSOCKET_URL;
 
     setupGlobalAxiosInterceptor({
+        websocketUrl,
+        maxBufferedNetworkLogs: options.maxBufferedNetworkLogs ?? 200
+    });
+
+    setupGlobalFetchInterceptor({
         websocketUrl,
         maxBufferedNetworkLogs: options.maxBufferedNetworkLogs ?? 200
     });

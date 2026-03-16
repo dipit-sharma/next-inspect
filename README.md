@@ -74,9 +74,9 @@ module.exports = nextConfig;
 
 Notes:
 
-- Captures server-side Axios calls from the Next.js Node process.
+- Captures server-side Axios and fetch calls from the Next.js Node process.
 - Does not capture Edge runtime traffic.
-- Does not automatically capture `fetch` or browser-side network calls.
+- Does not capture browser-side network calls.
 
 ### Troubleshooting (Next.js 13.5.9)
 
@@ -90,7 +90,7 @@ Notes:
 
 - Confirm collector is running with `npm run intercept`.
 - Confirm Next app process is running separately (`npm run dev` or `npm run start`).
-- Confirm your server-side code uses Axios (not only `fetch`).
+- Confirm API calls happen on the server (Node runtime), not only in the browser.
 
 3. Wrong runtime (Edge)
 

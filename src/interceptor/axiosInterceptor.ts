@@ -17,6 +17,7 @@ import type {
 } from "../shared/types";
 
 const DEFAULT_MAX_BUFFERED_NETWORK_LOGS = 200;
+const QUEUED_NETWORK_FLUSH_DELAY_MS = 2000;
 
 interface NormalizedGlobalAxiosInterceptorOptions {
     onRequest: RequestInterceptor;
@@ -33,6 +34,7 @@ const attachedInstances = new WeakMap<AxiosInstance, InterceptorHandles>();
 const trackedInstances = new Set<AxiosInstance>();
 let websocketClient: WebSocket | null = null;
 let websocketMessageQueue: string[] = [];
+let queuedNetworkFlushTimeout: ReturnType<typeof setTimeout> | null = null;
 let requestSequence = 0;
 
 const defaultOnRequest: RequestInterceptor = (config) => {
@@ -121,6 +123,26 @@ function flushWebSocketQueue(): void {
         websocketClient.send(serializedMessage);
     }
     websocketMessageQueue = [];
+
+    if (queuedNetworkFlushTimeout) {
+        clearTimeout(queuedNetworkFlushTimeout);
+        queuedNetworkFlushTimeout = null;
+    }
+}
+
+function scheduleQueuedNetworkFlush(): void {
+    if (queuedNetworkFlushTimeout) {
+        return;
+    }
+
+    queuedNetworkFlushTimeout = setTimeout(() => {
+        queuedNetworkFlushTimeout = null;
+        flushWebSocketQueue();
+
+        if (websocketMessageQueue.length > 0) {
+            scheduleQueuedNetworkFlush();
+        }
+    }, QUEUED_NETWORK_FLUSH_DELAY_MS);
 }
 
 function queueOrSendNetworkMessage(
@@ -143,18 +165,20 @@ function queueOrSendNetworkMessage(
         });
     }
 
-    if (websocketClient.readyState === WebSocket.OPEN) {
-        websocketClient.send(serializedMessage);
-        return;
-    }
-
     websocketMessageQueue.push(serializedMessage);
     if (websocketMessageQueue.length > maxBufferedNetworkLogs) {
         websocketMessageQueue.shift();
     }
+
+    scheduleQueuedNetworkFlush();
 }
 
 function closeWebSocketClient(): void {
+    if (queuedNetworkFlushTimeout) {
+        clearTimeout(queuedNetworkFlushTimeout);
+        queuedNetworkFlushTimeout = null;
+    }
+
     if (websocketClient && websocketClient.readyState === WebSocket.OPEN) {
         websocketClient.close();
     }

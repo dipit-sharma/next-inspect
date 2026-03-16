@@ -11,6 +11,12 @@ export {
     isAxiosError
 } from "./interceptor/axiosInterceptor";
 
+export {
+    setupGlobalFetchInterceptor,
+    ejectGlobalFetchInterceptor,
+    isGlobalFetchInterceptorInstalled
+} from "./interceptor/fetchInterceptor";
+
 export { registerNextInspect } from "./next/instrumentation";
 
 export { createWebSocketHub } from "./ws-hub/websocket";
