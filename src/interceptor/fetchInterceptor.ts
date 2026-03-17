@@ -9,6 +9,8 @@ let websocketClient: WebSocket | null = null;
 let websocketMessageQueue: string[] = [];
 let requestSequence = 0;
 
+export type FetchLike = typeof globalThis.fetch;
+
 function buildProducerWebSocketUrl(websocketUrl: string): string {
     if (websocketUrl.includes("role=")) {
         return websocketUrl;
@@ -145,6 +147,27 @@ function queueOrSendNetworkMessage(
     }
 }
 
+export function createFetchInterceptor(
+    fetchImpl: FetchLike,
+    options: GlobalAxiosInterceptorOptions = {}
+): FetchLike {
+    if (typeof fetchImpl !== "function" || !options.websocketUrl) {
+        return fetchImpl;
+    }
+
+    return (async (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
+        const payload = createNetworkRequestPayload(input, init);
+        const message: NetworkRequestConfigMessage = {
+            type: "network.request.config",
+            payload
+        };
+
+        queueOrSendNetworkMessage(message, options.websocketUrl!, options.maxBufferedNetworkLogs ?? DEFAULT_MAX_BUFFERED_NETWORK_LOGS);
+
+        return fetchImpl(input, init);
+    }) as FetchLike;
+}
+
 function closeWebSocketClient(): void {
     if (websocketClient && websocketClient.readyState === WebSocket.OPEN) {
         websocketClient.close();
@@ -161,17 +184,7 @@ export function setupGlobalFetchInterceptor(options: GlobalAxiosInterceptorOptio
 
     originalFetch = globalThis.fetch.bind(globalThis);
 
-    globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
-        const payload = createNetworkRequestPayload(input, init);
-        const message: NetworkRequestConfigMessage = {
-            type: "network.request.config",
-            payload
-        };
-
-        queueOrSendNetworkMessage(message, options.websocketUrl!, options.maxBufferedNetworkLogs ?? DEFAULT_MAX_BUFFERED_NETWORK_LOGS);
-
-        return originalFetch!(input as never, init as never);
-    }) as typeof globalThis.fetch;
+    globalThis.fetch = createFetchInterceptor(originalFetch, options);
 
     isInstalled = true;
 }

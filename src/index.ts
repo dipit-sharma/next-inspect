@@ -12,6 +12,7 @@ export {
 } from "./interceptor/axiosInterceptor";
 
 export {
+    createFetchInterceptor,
     setupGlobalFetchInterceptor,
     ejectGlobalFetchInterceptor,
     isGlobalFetchInterceptorInstalled

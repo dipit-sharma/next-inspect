@@ -78,6 +78,25 @@ Notes:
 - Does not capture Edge runtime traffic.
 - Does not capture browser-side network calls.
 
+### Using fetch-cross (or other custom fetch clients)
+
+If your app imports a fetch implementation directly (for example `fetch-cross`), patching only `globalThis.fetch` may not intercept those calls. In that case, wrap the imported fetch function:
+
+```ts
+import fetchCross from "fetch-cross";
+import { createFetchInterceptor } from "next-inspect";
+
+const fetch = createFetchInterceptor(fetchCross as typeof globalThis.fetch, {
+  websocketUrl: "ws://localhost:8757/ws?role=producer",
+  maxBufferedNetworkLogs: 200,
+});
+
+// Use `fetch` instead of `fetchCross`
+const response = await fetch("https://example.com/api");
+```
+
+If you control one central HTTP client module, apply this wrapper there so all imports share the intercepted fetch.
+
 ### Troubleshooting (Next.js 13.5.9)
 
 1. `instrumentation.ts` is not running
