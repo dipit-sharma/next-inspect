@@ -5,7 +5,7 @@ import { setupGlobalAxiosInterceptor } from "../interceptor/axiosInterceptor";
 import { createWebSocketHub } from "../ws-hub/websocket";
 
 const port = Number(process.env.NEXT_INSPECT_PORT ?? "8757");
-const host = process.env.NEXT_INSPECT_HOST ?? "127.0.0.1";
+const host = process.env.NEXT_INSPECT_HOST ?? "0.0.0.0";
 const path = process.env.NEXT_INSPECT_WS_PATH ?? "/ws";
 const dashboardDir = resolve(__dirname, "../dashboard");
 
