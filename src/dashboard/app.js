@@ -10,6 +10,30 @@ const clearBtn = document.getElementById("clear-btn");
 const counter = document.getElementById("counter");
 const rowsEl = document.getElementById("log-rows");
 const detailsView = document.getElementById("details-view");
+const replayStatus = document.getElementById("replay-status");
+
+const FORBIDDEN_BROWSER_HEADERS = new Set([
+  "accept-charset",
+  "accept-encoding",
+  "access-control-request-headers",
+  "access-control-request-method",
+  "connection",
+  "content-length",
+  "cookie",
+  "cookie2",
+  "date",
+  "dnt",
+  "expect",
+  "host",
+  "keep-alive",
+  "origin",
+  "referer",
+  "te",
+  "trailer",
+  "transfer-encoding",
+  "upgrade",
+  "via",
+]);
 
 function setStatus(isConnected) {
   statusPill.textContent = isConnected ? "connected" : "disconnected";
@@ -20,6 +44,92 @@ function setStatus(isConnected) {
 
 function formatTime(epochMs) {
   return new Date(epochMs).toLocaleTimeString();
+}
+
+function setReplayStatus(message, kind = "info") {
+  replayStatus.textContent = message;
+  replayStatus.classList.remove("ok", "error");
+
+  if (kind === "ok") {
+    replayStatus.classList.add("ok");
+  }
+
+  if (kind === "error") {
+    replayStatus.classList.add("error");
+  }
+}
+
+function resolveReplayUrl(log) {
+  if (/^https?:\/\//i.test(String(log.url || ""))) {
+    return log.url;
+  }
+
+  if (log.baseURL) {
+    const base = String(log.baseURL).endsWith("/")
+      ? String(log.baseURL).slice(0, -1)
+      : String(log.baseURL);
+    const path = String(log.url || "").startsWith("/")
+      ? String(log.url || "")
+      : `/${String(log.url || "")}`;
+    return `${base}${path}`;
+  }
+
+  return log.url;
+}
+
+function toReplayHeaders(sourceHeaders) {
+  const result = {};
+  const input =
+    sourceHeaders && typeof sourceHeaders === "object" ? sourceHeaders : {};
+
+  for (const [key, value] of Object.entries(input)) {
+    if (value == null) {
+      continue;
+    }
+
+    const headerName = String(key).trim();
+    if (!headerName) {
+      continue;
+    }
+
+    if (FORBIDDEN_BROWSER_HEADERS.has(headerName.toLowerCase())) {
+      continue;
+    }
+
+    result[headerName] = String(value);
+  }
+
+  return result;
+}
+
+async function replayLog(log) {
+  const method = String(log.method || "GET").toUpperCase();
+  const url = resolveReplayUrl(log);
+
+  if (!url) {
+    setReplayStatus("Cannot replay this log because URL is missing.", "error");
+    return;
+  }
+
+  const init = {
+    method,
+    headers: toReplayHeaders(log.headers),
+  };
+
+  if (log.data != null && method !== "GET" && method !== "HEAD") {
+    init.body =
+      typeof log.data === "string" ? log.data : JSON.stringify(log.data);
+  }
+
+  try {
+    setReplayStatus(`Replaying ${method} ${url}...`);
+    await fetch(url, init);
+    setReplayStatus(`Replay sent: ${method} ${url}`, "ok");
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unknown replay error";
+    setReplayStatus(`Replay failed: ${message}`, "error");
+  }
 }
 
 function addLog(payload) {
@@ -68,9 +178,21 @@ function renderRows() {
     const tUrl = document.createElement("td");
     tUrl.textContent = log.url;
 
+    const tReplay = document.createElement("td");
+    const replayBtn = document.createElement("button");
+    replayBtn.type = "button";
+    replayBtn.className = "replay-btn";
+    replayBtn.textContent = "Replay";
+    replayBtn.addEventListener("click", async (event) => {
+      event.stopPropagation();
+      await replayLog(log);
+    });
+    tReplay.appendChild(replayBtn);
+
     tr.appendChild(tTime);
     tr.appendChild(tMethod);
     tr.appendChild(tUrl);
+    tr.appendChild(tReplay);
 
     tr.addEventListener("click", () => {
       activeId = log.id;
@@ -143,8 +265,10 @@ clearBtn.addEventListener("click", () => {
   logs.length = 0;
   activeId = null;
   detailsView.textContent = "Select a log row to inspect payload.";
+  setReplayStatus("Replay status: idle");
   renderRows();
 });
 
 setStatus(false);
+setReplayStatus("Replay status: idle");
 renderRows();
