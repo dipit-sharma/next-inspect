@@ -12,6 +12,7 @@ export interface WebSocketHubOptions {
     host?: string;
     path?: string;
     server?: HttpServer;
+    allowedOrigins?: "*" | string[];
 }
 
 export interface WebSocketHub {
@@ -22,6 +23,19 @@ export interface WebSocketHub {
 
 const DEFAULT_PORT = 8757;
 const DEFAULT_PATH = "/ws";
+
+function toNormalizedOrigin(origin: string): string | null {
+    try {
+        return new URL(origin).origin.toLowerCase();
+    } catch {
+        return null;
+    }
+}
+
+function rejectUpgrade(socket: Socket, statusCode: number, statusText: string): void {
+    socket.write(`HTTP/1.1 ${statusCode} ${statusText}\r\nConnection: close\r\n\r\n`);
+    socket.destroy();
+}
 
 function isNetworkRequestConfigMessage(value: unknown): value is NetworkRequestConfigMessage {
     if (!value || typeof value !== "object") {
@@ -65,6 +79,15 @@ export function createWebSocketHub(options: WebSocketHubOptions = {}): WebSocket
     const host = options.host ?? "127.0.0.1";
     const path = options.path ?? DEFAULT_PATH;
     const server = options.server;
+    const configuredAllowedOrigins = options.allowedOrigins;
+    const allowAllOrigins = configuredAllowedOrigins === undefined || configuredAllowedOrigins === "*";
+    const allowedOrigins =
+        !allowAllOrigins && Array.isArray(configuredAllowedOrigins)
+            ? configuredAllowedOrigins
+                .map((origin) => toNormalizedOrigin(origin) ?? origin.toLowerCase())
+                .filter((origin) => origin.length > 0)
+            : [];
+    const allowedOriginSet = new Set<string>(allowedOrigins);
 
     const producerClients = new Set<WebSocket>();
     const frontendClients = new Set<WebSocket>();
@@ -133,6 +156,19 @@ export function createWebSocketHub(options: WebSocketHubOptions = {}): WebSocket
         });
     }
 
+    function isOriginAllowed(originHeader: string | undefined): boolean {
+        if (allowAllOrigins) {
+            return true;
+        }
+
+        if (!originHeader) {
+            return false;
+        }
+
+        const normalizedOrigin = toNormalizedOrigin(originHeader) ?? originHeader.toLowerCase();
+        return allowedOriginSet.has(normalizedOrigin);
+    }
+
     return {
         start: async () => {
             if (wss) {
@@ -148,6 +184,13 @@ export function createWebSocketHub(options: WebSocketHubOptions = {}): WebSocket
                     const pathname = rawUrl.split("?")[0] ?? "";
 
                     if (pathname !== path) {
+                        return;
+                    }
+
+                    const origin = request.headers.origin;
+                    const originHeader = Array.isArray(origin) ? origin[0] : origin;
+                    if (!isOriginAllowed(originHeader)) {
+                        rejectUpgrade(socket, 403, "Forbidden");
                         return;
                     }
 

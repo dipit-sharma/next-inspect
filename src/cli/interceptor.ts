@@ -7,6 +7,7 @@ import { createWebSocketHub } from "../ws-hub/websocket";
 const port = Number(process.env.NEXT_INSPECT_PORT ?? "8757");
 const host = process.env.NEXT_INSPECT_HOST ?? "0.0.0.0";
 const path = process.env.NEXT_INSPECT_WS_PATH ?? "/ws";
+const allowedOriginsRaw = process.env.NEXT_INSPECT_WS_ALLOWED_ORIGINS ?? "*";
 const dashboardDir = resolve(__dirname, "../dashboard");
 
 const CONTENT_TYPE: Record<string, string> = {
@@ -15,6 +16,20 @@ const CONTENT_TYPE: Record<string, string> = {
     ".js": "application/javascript; charset=utf-8",
     ".json": "application/json; charset=utf-8"
 };
+
+function parseAllowedOrigins(rawValue: string): "*" | string[] {
+    const trimmed = rawValue.trim();
+    if (!trimmed || trimmed === "*") {
+        return "*";
+    }
+
+    const parsedOrigins = trimmed
+        .split(",")
+        .map((origin) => origin.trim())
+        .filter((origin) => origin.length > 0);
+
+    return parsedOrigins.length > 0 ? parsedOrigins : "*";
+}
 
 function resolveDashboardFilePath(rawUrl: string | undefined): string {
     const url = rawUrl ?? "/";
@@ -55,6 +70,8 @@ async function handleDashboardRequest(req: IncomingMessage, res: ServerResponse)
 }
 
 export async function runInterceptor(): Promise<void> {
+    const allowedOrigins = parseAllowedOrigins(allowedOriginsRaw);
+
     const server = createServer((req, res) => {
         void handleDashboardRequest(req, res);
     });
@@ -66,7 +83,7 @@ export async function runInterceptor(): Promise<void> {
         });
     });
 
-    const hub = createWebSocketHub({ server, path });
+    const hub = createWebSocketHub({ server, path, allowedOrigins });
     await hub.start();
 
     const webSocketHost = host === "0.0.0.0" ? "127.0.0.1" : host;
@@ -75,6 +92,9 @@ export async function runInterceptor(): Promise<void> {
 
     process.stdout.write(`next-inspect dashboard is running at http://${host}:${port}\n`);
     process.stdout.write(`next-inspect websocket is running at ws://${webSocketHost}:${port}${path}\n`);
+    process.stdout.write(
+        `next-inspect websocket allowed origins: ${allowedOrigins === "*" ? "*" : allowedOrigins.join(", ")}\n`
+    );
 
     const shutdown = async () => {
         process.stdout.write("Shutting down next-inspect interceptor...\n");

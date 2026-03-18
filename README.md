@@ -47,6 +47,7 @@ Environment options:
 
 - `NEXT_INSPECT_ENABLED=false` to disable registration.
 - `NEXT_INSPECT_COLLECTOR_URL=ws://localhost:8757/ws?role=producer` to override websocket URL.
+- `NEXT_INSPECT_WS_ALLOWED_ORIGINS=*` to allow all browser origins for websocket upgrades (or a comma-separated allow-list, e.g. `https://app.example.com,https://admin.example.com`).
 
 ## Next.js 13.5.9 (Pages Router)
 
