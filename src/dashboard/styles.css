@@ -77,6 +77,16 @@ button:hover {
   background: var(--accent-strong);
 }
 
+.replay-btn {
+  background: #2f6f5d;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.replay-btn:hover {
+  background: #1f5648;
+}
+
 .pill {
   border-radius: 999px;
   padding: 4px 10px;
@@ -99,6 +109,27 @@ button:hover {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.replay-strip {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #faf7ec;
+}
+
+#replay-status {
+  font-size: 13px;
+  color: #445057;
+}
+
+#replay-status.ok {
+  color: var(--ok);
+}
+
+#replay-status.error {
+  color: var(--bad);
 }
 
 .controls input {
