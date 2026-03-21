@@ -14,13 +14,6 @@ In the consuming Next.js app, add this script:
 }
 ```
 
-## Scripts
-
-- `npm run build` - Build to `dist/`
-- `npm run dev` - Watch mode build
-- `npm run typecheck` - Type-check project
-- `npm run clean` - Remove `dist/`
-
 ## Next.js Server Integration
 
 Create `instrumentation.ts` in the root of the Next.js app and register interceptor setup in the Node.js runtime:

@@ -1,5 +1,5 @@
 {
-  "name": "next-inspect",
+  "name": "@dipit_sharma/next-inspect",
   "version": "0.1.0",
   "description": "TypeScript npm package boilerplate",
   "main": "dist/index.js",
@@ -21,7 +21,7 @@
     "prepublishOnly": "npm run build"
   },
   "keywords": [],
-  "author": "",
+  "author": "dipit_sharma",
   "license": "MIT",
   "dependencies": {
     "axios": "^1.8.4",
@@ -31,5 +31,13 @@
     "@types/node": "^22.13.10",
     "@types/ws": "^8.18.0",
     "typescript": "^5.8.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dipit-sharma/next-inspect.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dipit-sharma/next-inspect/issues"
+  },
+  "homepage": "https://github.com/dipit-sharma/next-inspect#readme"
 }
