@@ -1,6 +1,9 @@
 # next-inspect
 
-TypeScript npm package boilerplate.
+This is a package for Next.js apps to intercept the server side network calls. It works for:
+
+- axios calls by using axios.interceptor implementation
+- fetch calls by overriding the globalThis.fetch method
 
 ## Host App Script
 
