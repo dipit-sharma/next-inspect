@@ -150,6 +150,7 @@ function queueOrSendNetworkMessage(
     websocketUrl: string,
     maxBufferedNetworkLogs: number
 ): void {
+    if (typeof window !== 'undefined' && window.document) return;
     const serializedMessage = JSON.stringify(message);
 
     if (!websocketClient || websocketClient.readyState === WebSocket.CLOSED) {
